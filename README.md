@@ -1,16 +1,19 @@
 # asgitools
 
-A collection of tools for developing [ASGI] applications. Supports both ASGI
- servers, uvicorn and daphne.
+A collection of tools for developing [ASGI] applications. Supports both ASGI servers, [uvicorn] and [daphne].
 
-**Requirements**:
+**Requirements**: Python 3.5.3+ and an ASGI server
 
-- Python 3.5.3+
-- ASGI server, [uvicorn] or [daphne]
+Currently includes:
+
+- Protocol and URL routing
+- WSGI debug middleware
 
 ## Quickstart
 
-You can find a very simple http/websocket example in `examples/` that demonstrates both protocol and url routing. Otherwise you can try the example below to run a simple HTTP app.
+You can find a very simple http/websocket example in `examples/` that demonstrates protocol and url routing. 
+
+Otherwise you can try the example below to run a simple HTTP app:
 
 Install using `pip`:
 
