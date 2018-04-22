@@ -10,13 +10,12 @@ from .helpers import http_response
 class AsgiWsgiDebugMiddleware(DebuggedApplication):
 
     def __init__(self, *args, **kwargs):
-        self.name = 'http'
+        self.protocol_type = 'http'
         # os.environ['WERKZEUG_RUN_MAIN'] = 'true'
         super().__init__(*args, **kwargs)
         self.scope = None
-        self._asgi = None
 
-    def asgi(self, scope):
+    def consumer(self, scope):
         environ = utils.message_to_environ(scope)
         wsgi_status = None
         wsgi_headers = None
@@ -42,7 +41,7 @@ class AsgiWsgiDebugMiddleware(DebuggedApplication):
 
     def _debug_application(self, scope):
         self.scope = scope
-        app = self.app.asgi(scope)
+        app = self.app.consumer(scope)
 
         async def asgi_wrapper(receive, send):
             try:

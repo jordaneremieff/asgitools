@@ -8,15 +8,15 @@ from .helpers import http_response
 
 class AsgiProtocol:
 
-    def __init__(self, name, asgi):
-        self.name = name
-        self.asgi = asgi
+    def __init__(self, protocol_type, consumer):
+        self.protocol_type = protocol_type
+        self.consumer = consumer
 
 
 class AsgiProtocolRouter:
 
     def __init__(self, apps):
-        self.apps = {app.name: app for app in apps}
+        self.apps = {app.protocol_type: app for app in apps}
 
     def __call__(self, scope):
         try:
@@ -27,7 +27,7 @@ class AsgiProtocolRouter:
             app = self.apps[protocol]
         except KeyError:
             raise Exception('Unhandled protocol type "%s"' % protocol)
-        return app.asgi(scope)
+        return app.consumer(scope)
 
 
 class AsgiUrlRoute:

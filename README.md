@@ -68,7 +68,7 @@ app = AsgiProtocolRouter([
 Run the server:
 
 ```shell
-$ uvicorn app:App
+$ uvicorn app:app
 ```
 
 OR
