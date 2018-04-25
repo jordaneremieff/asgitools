@@ -2,8 +2,11 @@ from asgitools.routing import (
     AsgiProtocolRouter,
     AsgiProtocol,
     AsgiUrlRouter,
-    AsgiUrlRoute
+    AsgiUrlRoute,
+    AsgiMiddlewareRouter
 )
+from asgitools.debug import AsgiWsgiDebuggedApplication
+from asgitools.middlewares.broadcast import BroadcastMiddleware
 
 
 with open('index.html', 'rb') as file:
@@ -12,19 +15,36 @@ with open('index.html', 'rb') as file:
 
 class WebSocketConsumer:
 
+    middlewares = [BroadcastMiddleware]
+
     def __init__(self, scope):
         self.scope = scope
-        self.id = 'ws_consumer:%d' % id(self)
+        self.groups = None
 
     async def __call__(self, receive, send):
+        self.send = send
         while True:
             message = await receive()
+
             if message['type'] == 'websocket.connect':
                 await send({'type': 'websocket.accept'})
-            elif message['type'] == 'websocket.disconnect':
-                return
+                await self.groups.send({
+                    'group': 'chat',
+                    'add': self.id
+                })
+
             elif message['type'] == 'websocket.receive':
-                await send({'type': 'websocket.send', 'text': 'Hello world!'})
+                text = '<%s> %s' % (self.id, message['text'])
+                await self.groups.send({
+                    'group': 'chat',
+                    'send': {'type': 'websocket.send', 'text': text}
+                })
+
+            elif message['type'] == 'websocket.disconnect':
+                await self.groups.send({
+                    'group': 'chat',
+                    'discard': self.id
+                })
 
 
 class HttpConsumer:
@@ -49,25 +69,26 @@ class HttpConsumer:
             })
 
 
-# The protocol router handles parsing the connection scope type in order to
-# route the request to an assigned protocol handler. It accepts a list of
-# AsgiProtocol definitions.
 app = AsgiProtocolRouter([
-    # The asgi protocols handle a named scope type (e.g. `http` or `websocket`).
     AsgiProtocol(
         'http',
-        # You may include a list of URL routes, but this is not required.
         AsgiUrlRouter([
-            # Define a URL route for a consumer class
             AsgiUrlRoute(
                 '/', HttpConsumer, methods=['GET']
             ),
-        ])
+        ]),
     ),
     AsgiProtocol(
         'websocket',
-        WebSocketConsumer
-    )
+        AsgiUrlRouter([
+            AsgiUrlRoute(
+                '/ws/', WebSocketConsumer
+            ),
+        ]),
+    ),
 ])
 
-# Run with the command `uvicorn app:app`
+app = AsgiWsgiDebuggedApplication(app)
+
+
+# Run with the command `uvicorn app:app` or `daphne app:app`

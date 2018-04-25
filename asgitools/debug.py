@@ -7,15 +7,14 @@ from . import utils
 from .helpers import http_response
 
 
-class AsgiWsgiDebugMiddleware(DebuggedApplication):
+class AsgiWsgiDebuggedApplication(DebuggedApplication):
 
     def __init__(self, *args, **kwargs):
         self.protocol_type = 'http'
         # os.environ['WERKZEUG_RUN_MAIN'] = 'true'
         super().__init__(*args, **kwargs)
-        self.scope = None
 
-    def consumer(self, scope):
+    def __call__(self, scope):
         environ = utils.message_to_environ(scope)
         wsgi_status = None
         wsgi_headers = None
@@ -41,11 +40,11 @@ class AsgiWsgiDebugMiddleware(DebuggedApplication):
 
     def _debug_application(self, scope):
         self.scope = scope
-        app = self.app.consumer(scope)
+        application = self.app(scope)
 
         async def asgi_wrapper(receive, send):
             try:
-                return await app(receive, send)
+                return await application(receive, send)
             except Exception:
                 traceback = get_current_traceback(
                     skip=1, show_hidden_frames=self.show_hidden_frames,

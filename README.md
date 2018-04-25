@@ -8,10 +8,11 @@ Currently includes:
 
 - Protocol and URL routing
 - WSGI debug middleware
+- Redis broadcast middleware
 
 ## Quickstart
 
-You can find a very simple http/websocket example in `examples/` that demonstrates protocol and url routing. 
+You can find an example app in `examples/` that demonstrates protocol, url routing, middleware usage, and wsgi debugger.
 
 Otherwise you can try the example below to run a simple HTTP app:
 
